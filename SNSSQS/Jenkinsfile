@@ -1,0 +1,23 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Build containers') {
+            steps {
+                sh 'docker-compose build'
+            }
+        }
+
+        stage('Run containers') {
+            steps {
+                sh 'docker-compose up -d'
+            }
+        }
+    }
+
+    post {
+        always {
+            sh 'docker-compose down || true'
+        }
+    }
+}
