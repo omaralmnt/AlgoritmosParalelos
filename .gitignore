@@ -1,4 +1,23 @@
-# Logs
+# General
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Documentos temporales (comentar si quieres subirlos)
+# *.pdf
+# *.docx
+# *.doc
+
+# Frontend (Node/Vite) - General
 logs
 *.log
 npm-debug.log*
@@ -6,20 +25,34 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
-vendor
-node_modules
-dist
-dist-ssr
+node_modules/
+dist/
+dist-ssr/
 *.local
-.env
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+
+# Backend Symfony (crudmvvm)
+crudmvvm/backend/.env.local
+crudmvvm/backend/.env.local.php
+crudmvvm/backend/.env.*.local
+crudmvvm/backend/config/secrets/prod/prod.decrypt.private.php
+crudmvvm/backend/public/bundles/
+crudmvvm/backend/var/
+crudmvvm/backend/vendor/
+
+# JWT Keys (sensible)
+crudmvvm/backend/config/jwt/*.pem
+
+# Base de datos SQLite
+crudmvvm/backend/var/*.db
+crudmvvm/backend/var/data*.db
+crudmvvm/backend/var/clientes.db
+
+# Docker volumes
+crudmvvm/backend/docker/
+
+# Vendor genérico
+vendor/
+
+# Claude
+.claude/
+crudmvvm/.claude/
