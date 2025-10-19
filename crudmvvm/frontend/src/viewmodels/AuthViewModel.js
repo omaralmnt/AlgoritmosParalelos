@@ -1,0 +1,54 @@
+import { useState } from 'react';
+import { authService } from '../services/authService';
+
+export const useAuthViewModel = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const login = async (username, password) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await authService.login(username, password);
+      setIsAuthenticated(true);
+      return true;
+    } catch (err) {
+      console.log('Error completo:', err);
+      console.log('Error response:', err.response);
+      console.log('Error data:', err.response?.data);
+      console.log('Error message:', err.message);
+
+      const errorMessage = err.response?.data?.message
+        || err.response?.data?.error
+        || err.message
+        || 'Error al iniciar sesión';
+
+      setError(errorMessage);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    await authService.logout();
+    setIsAuthenticated(false);
+  };
+
+  const checkAuth = async () => {
+    const authenticated = await authService.isAuthenticated();
+    setIsAuthenticated(authenticated);
+    return authenticated;
+  };
+
+  return {
+    loading,
+    error,
+    isAuthenticated,
+    login,
+    logout,
+    checkAuth,
+  };
+};
