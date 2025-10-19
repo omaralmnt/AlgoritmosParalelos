@@ -5,9 +5,11 @@ namespace App\Entity;
 use App\Repository\UsuarioRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity(repositoryClass: UsuarioRepository::class)]
-class Usuario
+class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -40,7 +42,6 @@ class Usuario
     public function setNombreusuario(string $nombreusuario): static
     {
         $this->nombreusuario = $nombreusuario;
-
         return $this;
     }
 
@@ -52,7 +53,6 @@ class Usuario
     public function setClave(string $clave): static
     {
         $this->clave = $clave;
-
         return $this;
     }
 
@@ -64,7 +64,25 @@ class Usuario
     public function setAvatar(?string $avatar): static
     {
         $this->avatar = $avatar;
-
         return $this;
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->nombreusuario;
+    }
+
+    public function getRoles(): array
+    {
+        return ['ROLE_USER'];
+    }
+
+    public function getPassword(): string
+    {
+        return $this->clave;
+    }
+
+    public function eraseCredentials(): void
+    {
     }
 }

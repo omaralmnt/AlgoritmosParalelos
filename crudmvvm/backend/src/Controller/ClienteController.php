@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/cliente')]
 final class ClienteController extends AbstractController 
 {
-    #[Route(path: '/', name: 'list', methods:['GET'])]
+    #[Route(path: '', name: 'list', methods:['GET'])]
     public function index(ClienteRepository $repo) : JsonResponse {
 
         $clientes = $repo->findAll();
@@ -53,10 +53,10 @@ final class ClienteController extends AbstractController
             $cliente->setCorreo($data->correo);
         }
         if (isset($data->telefono)) {
-            $cliente->setCorreo($data->telefono);
+            $cliente->setTelefono($data->telefono);
         }
         if (isset($data->sexo)) {
-            $cliente->setCorreo($data->telefono);
+            $cliente->setSexo($data->sexo);
         }
 
         $em->flush();

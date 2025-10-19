@@ -1,4 +1,4 @@
-twig:
+1twig:
     file_name_pattern: '*.twig'
 
 when@test:
