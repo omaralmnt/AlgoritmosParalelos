@@ -28,8 +28,11 @@ class Cliente
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['cliente:read', 'cliente:write'])]
-
     private ?string $sexo = null;
+
+    #[ORM\Column(length: 500, nullable: true)]
+    #[Groups(['cliente:read', 'cliente:write'])]
+    private ?string $avatar = null;
 
     public function getId(): ?int
     {
@@ -80,6 +83,18 @@ class Cliente
     public function setSexo(?string $sexo): static
     {
         $this->sexo = $sexo;
+
+        return $this;
+    }
+
+    public function getAvatar(): ?string
+    {
+        return $this->avatar;
+    }
+
+    public function setAvatar(?string $avatar): static
+    {
+        $this->avatar = $avatar;
 
         return $this;
     }

@@ -4,7 +4,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const httpClient = axios.create({
   baseURL: API_CONFIG.BASE_URL,
-  timeout: API_CONFIG.TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -26,12 +25,19 @@ const processQueue = (error, token = null) => {
 
 httpClient.interceptors.request.use(
   async (config) => {
-    console.log('HTTP Request:', {
-      url: config.url,
-      baseURL: config.baseURL,
-      method: config.method,
-      data: config.data,
-    });
+    const startTime = performance.now();
+    config.metadata = { startTime };
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort();
+      const elapsedTime = performance.now() - startTime;
+      console.log(`[TIMEOUT] Request ABORTADA despues de ${elapsedTime.toFixed(2)}ms`);
+    }, API_CONFIG.TIMEOUT);
+
+    config.signal = controller.signal;
+    config.metadata = { ...config.metadata, timeout };
+
     const token = await AsyncStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -46,16 +52,27 @@ httpClient.interceptors.request.use(
 
 httpClient.interceptors.response.use(
   (response) => {
-    console.log('HTTP Response success:', response.data);
+    if (response.config.metadata?.timeout) {
+      clearTimeout(response.config.metadata.timeout);
+    }
+
+    if (response.config.metadata?.startTime) {
+      const elapsedTime = performance.now() - response.config.metadata.startTime;
+      console.log(`[HTTP OK] ${response.config.method.toUpperCase()} ${response.config.url} - ${elapsedTime.toFixed(2)}ms`);
+    }
+
     return response;
   },
   async (error) => {
-    console.log('HTTP Response error:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-      url: error.config?.url,
-    });
+    if (error.config?.metadata?.timeout) {
+      clearTimeout(error.config.metadata.timeout);
+    }
+
+    if (error.config?.metadata?.startTime) {
+      const elapsedTime = performance.now() - error.config.metadata.startTime;
+      console.log(`[HTTP ERROR] ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${elapsedTime.toFixed(2)}ms - ${error.message}`);
+    }
+
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {

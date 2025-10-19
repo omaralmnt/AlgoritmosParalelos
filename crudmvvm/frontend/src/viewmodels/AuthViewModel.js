@@ -1,17 +1,25 @@
 import { useState } from 'react';
 import { authService } from '../services/authService';
+import { Usuario } from '../models/Usuario';
 
 export const useAuthViewModel = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [usuario, setUsuario] = useState(null);
 
   const login = async (username, password) => {
     setLoading(true);
     setError(null);
 
     try {
-      await authService.login(username, password);
+      const response = await authService.login(username, password);
+
+      if (response.perfil) {
+        const usuarioModel = new Usuario(response.perfil);
+        setUsuario(usuarioModel);
+      }
+
       setIsAuthenticated(true);
       return true;
     } catch (err) {
@@ -35,6 +43,7 @@ export const useAuthViewModel = () => {
   const logout = async () => {
     await authService.logout();
     setIsAuthenticated(false);
+    setUsuario(null);
   };
 
   const checkAuth = async () => {
@@ -47,6 +56,7 @@ export const useAuthViewModel = () => {
     loading,
     error,
     isAuthenticated,
+    usuario,
     login,
     logout,
     checkAuth,

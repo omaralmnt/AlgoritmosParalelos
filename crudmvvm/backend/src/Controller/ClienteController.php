@@ -19,7 +19,7 @@ final class ClienteController extends AbstractController
         $clientes = $repo->findAll();
       return $this->json($clientes, 200, [], ['groups' => 'cliente:read']);
     }
-    #[Route(path: '/', name: 'create', methods:['POST'])]
+    #[Route(path: '', name: 'create', methods:['POST'])]
 
     public function create(Request $request, EntityManagerInterface $em): JsonResponse
     {
@@ -36,6 +36,7 @@ final class ClienteController extends AbstractController
         $cliente->setCorreo($data->correo ?? null);
         $cliente->setTelefono($data->telefono ?? null);
         $cliente->setSexo($data->sexo ?? null);
+        $cliente->setAvatar($data->avatar ?? null);
 
 
         $em->persist($cliente);
@@ -57,6 +58,9 @@ final class ClienteController extends AbstractController
         }
         if (isset($data->sexo)) {
             $cliente->setSexo($data->sexo);
+        }
+        if (isset($data->avatar)) {
+            $cliente->setAvatar($data->avatar);
         }
 
         $em->flush();

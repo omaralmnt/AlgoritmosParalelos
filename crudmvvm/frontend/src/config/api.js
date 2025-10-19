@@ -4,6 +4,7 @@ export const API_CONFIG = {
   ENDPOINTS: {
     LOGIN: '/auth/login',
     REFRESH: '/auth/refresh',
-    CLIENTES: '/clientes',
+    PERFIL: '/usuario/perfil',
+    CLIENTES: '/cliente',
   }
 };

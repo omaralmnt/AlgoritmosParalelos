@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 #[Route(path: '/api')]
 final class UsuarioController extends AbstractController 
@@ -112,6 +113,16 @@ final class UsuarioController extends AbstractController
             'token' => $newToken,
             'refresh_token' => $newRefreshToken->getToken()
         ]);
+    }
+
+    #[Route(path: '/usuario/perfil', name: 'perfil', methods:['GET'])]
+    public function getPerfil(#[CurrentUser] ?Usuario $usuario): JsonResponse
+    {
+        if (!$usuario) {
+            return new JsonResponse(['error' => 'No autenticado'], 401);
+        }
+
+        return $this->json($usuario, 200, [], ['groups' => 'usuario:read']);
     }
 
     #[Route(path: '/usuario/{id}/avatar', name: 'getUserAvatar', methods:['GET'])]

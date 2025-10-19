@@ -6,12 +6,13 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
-  Image,
   Alert,
   TextInput,
   Modal,
+  Image,
 } from 'react-native';
 import { useClienteViewModel } from '../../viewmodels/ClienteViewModel';
+import { useAuthViewModel } from '../../viewmodels/AuthViewModel';
 
 export default function ClientesScreen({ navigation }) {
   const {
@@ -26,30 +27,49 @@ export default function ClientesScreen({ navigation }) {
     deleteCliente,
   } = useClienteViewModel();
 
+  const { logout } = useAuthViewModel();
+
   const [modalVisible, setModalVisible] = useState(false);
   const [editingCliente, setEditingCliente] = useState(null);
   const [nombre, setNombre] = useState('');
-  const [email, setEmail] = useState('');
+  const [correo, setCorreo] = useState('');
   const [telefono, setTelefono] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
+  const [sexo, setSexo] = useState('');
+  const [avatar, setAvatar] = useState('');
+  const [perfilExpanded, setPerfilExpanded] = useState(false);
+  const [usuario, setUsuario] = useState(null);
 
   useEffect(() => {
     loadClientes();
+    loadPerfil();
   }, []);
+
+  const loadPerfil = async () => {
+    try {
+      const { usuarioService } = require('../../services/usuarioService');
+      const { Usuario } = require('../../models/Usuario');
+      const perfil = await usuarioService.getPerfil();
+      setUsuario(new Usuario(perfil));
+    } catch (err) {
+      console.log('Error al cargar perfil:', err);
+    }
+  };
 
   const openModal = (cliente = null) => {
     if (cliente) {
       setEditingCliente(cliente);
       setNombre(cliente.nombre);
-      setEmail(cliente.email);
+      setCorreo(cliente.correo);
       setTelefono(cliente.telefono);
-      setAvatarUrl(cliente.avatar_url || '');
+      setSexo(cliente.sexo || '');
+      setAvatar(cliente.avatar || '');
     } else {
       setEditingCliente(null);
       setNombre('');
-      setEmail('');
+      setCorreo('');
       setTelefono('');
-      setAvatarUrl('');
+      setSexo('');
+      setAvatar('');
     }
     setModalVisible(true);
   };
@@ -60,7 +80,7 @@ export default function ClientesScreen({ navigation }) {
   };
 
   const handleSave = async () => {
-    const clienteData = { nombre, email, telefono, avatar_url: avatarUrl };
+    const clienteData = { nombre, correo, telefono, sexo, avatar };
 
     let success;
     if (editingCliente) {
@@ -92,13 +112,18 @@ export default function ClientesScreen({ navigation }) {
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardContent}>
-        {item.avatar_url && (
-          <Image source={{ uri: item.avatar_url }} style={styles.avatar} />
+        {item.avatar && (
+          <Image
+            source={{ uri: item.avatar }}
+            style={styles.avatar}
+            defaultSource={require('../../../assets/icon.png')}
+          />
         )}
         <View style={styles.info}>
           <Text style={styles.name}>{item.nombre}</Text>
-          <Text style={styles.email}>{item.email}</Text>
+          <Text style={styles.email}>{item.correo}</Text>
           <Text style={styles.phone}>{item.telefono}</Text>
+          <Text style={styles.sexo}>{item.sexo}</Text>
         </View>
       </View>
       <View style={styles.actions}>
@@ -126,8 +151,66 @@ export default function ClientesScreen({ navigation }) {
     );
   }
 
+  const handleLogout = async () => {
+    await logout();
+    navigation.replace('Login');
+  };
+
   return (
     <View style={styles.container}>
+      <View style={styles.perfilContainer}>
+        <View style={styles.perfilHeader}>
+          <TouchableOpacity
+            style={styles.perfilHeaderLeft}
+            onPress={() => setPerfilExpanded(!perfilExpanded)}
+          >
+            {usuario?.avatar && (
+              <Image source={{ uri: usuario.avatar }} style={styles.perfilAvatar} />
+            )}
+            <View>
+              <Text style={styles.perfilHeaderTitle}>Mi Perfil</Text>
+              {usuario?.nombreusuario && (
+                <Text style={styles.perfilHeaderSubtitle}>@{usuario.nombreusuario}</Text>
+              )}
+            </View>
+            <Text style={styles.perfilToggle}>{perfilExpanded ? '▼' : '▶'}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.logoutButtonHeader} onPress={handleLogout}>
+            <Text style={styles.logoutButtonHeaderText}>Salir</Text>
+          </TouchableOpacity>
+        </View>
+
+        {perfilExpanded && usuario && (
+          <View style={styles.perfilContent}>
+            {usuario.nombre && (
+              <View style={styles.perfilRow}>
+                <Text style={styles.perfilLabel}>Nombre:</Text>
+                <Text style={styles.perfilValue}>{usuario.nombre}</Text>
+              </View>
+            )}
+            {usuario.correo && (
+              <View style={styles.perfilRow}>
+                <Text style={styles.perfilLabel}>Correo:</Text>
+                <Text style={styles.perfilValue}>{usuario.correo}</Text>
+              </View>
+            )}
+            {usuario.telefono && (
+              <View style={styles.perfilRow}>
+                <Text style={styles.perfilLabel}>Teléfono:</Text>
+                <Text style={styles.perfilValue}>{usuario.telefono}</Text>
+              </View>
+            )}
+            {usuario.fechaNacimiento && (
+              <View style={styles.perfilRow}>
+                <Text style={styles.perfilLabel}>Fecha Nac.:</Text>
+                <Text style={styles.perfilValue}>{usuario.fechaNacimiento}</Text>
+              </View>
+            )}
+          </View>
+        )}
+      </View>
+
       {error && <Text style={styles.error}>{error}</Text>}
 
       <FlatList
@@ -160,30 +243,42 @@ export default function ClientesScreen({ navigation }) {
 
             <TextInput
               style={styles.input}
-              placeholder="Nombre"
+              placeholder="Nombre completo"
+              placeholderTextColor="#999"
               value={nombre}
               onChangeText={setNombre}
             />
             <TextInput
               style={styles.input}
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
+              placeholder="Correo electrónico"
+              placeholderTextColor="#999"
+              value={correo}
+              onChangeText={setCorreo}
               keyboardType="email-address"
               autoCapitalize="none"
             />
             <TextInput
               style={styles.input}
-              placeholder="Teléfono"
+              placeholder="Teléfono (ej: 8091234567)"
+              placeholderTextColor="#999"
               value={telefono}
               onChangeText={setTelefono}
               keyboardType="phone-pad"
             />
             <TextInput
               style={styles.input}
-              placeholder="URL Avatar (opcional)"
-              value={avatarUrl}
-              onChangeText={setAvatarUrl}
+              placeholder="Sexo: masculino o femenino"
+              placeholderTextColor="#999"
+              value={sexo}
+              onChangeText={setSexo}
+              autoCapitalize="none"
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="URL del avatar (opcional)"
+              placeholderTextColor="#999"
+              value={avatar}
+              onChangeText={setAvatar}
               autoCapitalize="none"
             />
 
@@ -249,7 +344,6 @@ const styles = StyleSheet.create({
   },
   info: {
     flex: 1,
-    justifyContent: 'center',
   },
   name: {
     fontSize: 18,
@@ -264,6 +358,12 @@ const styles = StyleSheet.create({
   phone: {
     fontSize: 14,
     color: '#666',
+    marginBottom: 2,
+  },
+  sexo: {
+    fontSize: 14,
+    color: '#999',
+    fontStyle: 'italic',
   },
   actions: {
     flexDirection: 'row',
@@ -376,5 +476,75 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
     fontWeight: '600',
+  },
+  perfilContainer: {
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  perfilHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15,
+    backgroundColor: '#007AFF',
+  },
+  perfilHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  perfilAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  perfilHeaderTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  perfilHeaderSubtitle: {
+    fontSize: 14,
+    color: '#e0e0e0',
+    marginTop: 2,
+  },
+  perfilToggle: {
+    fontSize: 16,
+    color: '#fff',
+    marginLeft: 10,
+  },
+  logoutButtonHeader: {
+    backgroundColor: '#ff3b30',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 5,
+  },
+  logoutButtonHeaderText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  perfilContent: {
+    padding: 15,
+    backgroundColor: '#fff',
+  },
+  perfilRow: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  perfilLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+    width: 100,
+  },
+  perfilValue: {
+    fontSize: 14,
+    color: '#333',
+    flex: 1,
   },
 });
