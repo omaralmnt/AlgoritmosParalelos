@@ -1,6 +1,17 @@
 
 ###> symfony/framework-bundle ###
-/.env.local
+/.env.localC:\Users\omara>  aws logs tail /aws/lambda
+
+An error occurred (ResourceNotFoundException) when calling the FilterLogEvents operation: The specified log group does not exist.
+
+C:\Users\omara>  /apiclientes-api --since
+'/apiclientes-api' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\omara>  5m
+
+
+
 /.env.local.php
 /.env.*.local
 /config/secrets/prod/prod.decrypt.private.php

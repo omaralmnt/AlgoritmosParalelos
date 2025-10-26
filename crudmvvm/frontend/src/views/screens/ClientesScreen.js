@@ -10,9 +10,13 @@ import {
   TextInput,
   Modal,
   Image,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useClienteViewModel } from '../../viewmodels/ClienteViewModel';
 import { useAuthViewModel } from '../../viewmodels/AuthViewModel';
+import { useEmailViewModel } from '../../viewmodels/EmailViewModel';
 
 export default function ClientesScreen({ navigation }) {
   const {
@@ -38,11 +42,35 @@ export default function ClientesScreen({ navigation }) {
   const [avatar, setAvatar] = useState('');
   const [perfilExpanded, setPerfilExpanded] = useState(false);
   const [usuario, setUsuario] = useState(null);
+  const [emailModalVisible, setEmailModalVisible] = useState(false);
+  const [emailTo, setEmailTo] = useState('');
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailMessage, setEmailMessage] = useState('');
+
+  const { loading: emailLoading, error: emailError, success: emailSuccess, sendEmail, clearMessages } = useEmailViewModel();
 
   useEffect(() => {
     loadClientes();
     loadPerfil();
   }, []);
+
+  useEffect(() => {
+    if (emailSuccess) {
+      Alert.alert(
+        'Email enviado',
+        'Tu email ha sido enviado exitosamente y está en cola de procesamiento.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              closeEmailModal();
+              clearMessages();
+            },
+          },
+        ]
+      );
+    }
+  }, [emailSuccess]);
 
   const loadPerfil = async () => {
     try {
@@ -107,6 +135,45 @@ export default function ClientesScreen({ navigation }) {
         },
       ]
     );
+  };
+
+  const openEmailModal = () => {
+    setEmailTo('');
+    setEmailSubject('');
+    setEmailMessage('');
+    setEmailModalVisible(true);
+  };
+
+  const closeEmailModal = () => {
+    setEmailModalVisible(false);
+    setEmailTo('');
+    setEmailSubject('');
+    setEmailMessage('');
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailTo.trim()) {
+      Alert.alert('Error', 'Por favor ingresa el email del destinatario');
+      return;
+    }
+
+    if (!emailSubject.trim()) {
+      Alert.alert('Error', 'Por favor ingresa el asunto del email');
+      return;
+    }
+
+    if (!emailMessage.trim()) {
+      Alert.alert('Error', 'Por favor ingresa el mensaje');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailTo)) {
+      Alert.alert('Error', 'Por favor ingresa un email válido');
+      return;
+    }
+
+    await sendEmail(emailTo, emailSubject, emailMessage);
   };
 
   const renderItem = ({ item }) => (
@@ -176,9 +243,17 @@ export default function ClientesScreen({ navigation }) {
             <Text style={styles.perfilToggle}>{perfilExpanded ? '▼' : '▶'}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.logoutButtonHeader} onPress={handleLogout}>
-            <Text style={styles.logoutButtonHeaderText}>Salir</Text>
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={styles.emailButtonHeader}
+              onPress={openEmailModal}
+            >
+              <Text style={styles.emailButtonHeaderText}>📧 Email</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.logoutButtonHeader} onPress={handleLogout}>
+              <Text style={styles.logoutButtonHeaderText}>Salir</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {perfilExpanded && usuario && (
@@ -303,6 +378,86 @@ export default function ClientesScreen({ navigation }) {
             </View>
           </View>
         </View>
+      </Modal>
+
+      <Modal
+        visible={emailModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={closeEmailModal}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.emailModalContent}>
+            <ScrollView>
+              <Text style={styles.modalTitle}>Enviar Email</Text>
+              <Text style={styles.emailSubtitle}>
+                Completa los campos para enviar un email
+              </Text>
+
+              <TextInput
+                style={styles.input}
+                placeholder="Para (email destinatario)*"
+                placeholderTextColor="#999"
+                value={emailTo}
+                onChangeText={setEmailTo}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                editable={!emailLoading}
+              />
+
+              <TextInput
+                style={styles.input}
+                placeholder="Asunto*"
+                placeholderTextColor="#999"
+                value={emailSubject}
+                onChangeText={setEmailSubject}
+                editable={!emailLoading}
+              />
+
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="Mensaje*"
+                placeholderTextColor="#999"
+                value={emailMessage}
+                onChangeText={setEmailMessage}
+                multiline
+                numberOfLines={6}
+                textAlignVertical="top"
+                editable={!emailLoading}
+              />
+
+              {emailError && (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{emailError}</Text>
+                </View>
+              )}
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={handleSendEmail}
+                  disabled={emailLoading}
+                >
+                  {emailLoading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.saveButtonText}>Enviar Email</Text>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={closeEmailModal}
+                  disabled={emailLoading}
+                >
+                  <Text style={styles.cancelButtonText}>Cancelar</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -515,6 +670,21 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginLeft: 10,
   },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  emailButtonHeader: {
+    backgroundColor: '#34C759',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 5,
+  },
+  emailButtonHeaderText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   logoutButtonHeader: {
     backgroundColor: '#ff3b30',
     paddingHorizontal: 15,
@@ -546,5 +716,35 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
     flex: 1,
+  },
+  emailModalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    maxHeight: '80%',
+    width: '90%',
+    alignSelf: 'center',
+  },
+  emailSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 20,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  textArea: {
+    height: 120,
+    paddingTop: 12,
+  },
+  errorContainer: {
+    backgroundColor: '#ff3b30',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 15,
+  },
+  errorText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontSize: 14,
   },
 });

@@ -1,0 +1,43 @@
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfstate.backup
+terraform/terraform.tfvars
+terraform/*.zip
+terraform/crash.log
+terraform/override.tf
+terraform/override.tf.json
+terraform/*_override.tf
+terraform/*_override.tf.json
+
+# Node modules (si decides agregar funciones Node.js localmente)
+node_modules/
+package-lock.json
+terraform/temp_lambda/
+terraform/lambda_publisher_src/node_modules/
+terraform/lambda_processor_src/node_modules/
+
+# AWS
+.aws/
+*.pem
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+response.json
+
+# Test files
+test-*.json
+terraform/test-*.json

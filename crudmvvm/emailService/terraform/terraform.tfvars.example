@@ -1,0 +1,20 @@
+# AWS Configuration
+aws_region   = "us-east-1"
+project_name = "crudmvvm-email-service"
+environment  = "prod"
+
+# API Gateway del backend (estos valores vienen de los outputs del backend)
+# Ejecuta: cd ../backend/terraform && terraform output
+api_gateway_id            = "abcdef1234"  # Reemplazar con el output api_gateway_id del backend
+api_gateway_execution_arn = "arn:aws:execute-api:us-east-1:123456789012:abcdef1234"  # Reemplazar con api_gateway_execution_arn
+api_gateway_authorizer_id = "xyz789"  # Reemplazar con api_gateway_authorizer_id
+
+# SMTP Configuration (Gmail, Outlook, etc.)
+# Para Gmail: Ver SETUP_GMAIL.md para obtener App Password
+smtp_host = "smtp.gmail.com"
+smtp_port = "587"
+smtp_user = "tu-email@gmail.com"        # Tu email de Gmail
+smtp_pass = "xxxx xxxx xxxx xxxx"       # App Password de Gmail (16 caracteres)
+
+# Email remitente (debe coincidir con smtp_user)
+from_email = "tu-email@gmail.com"

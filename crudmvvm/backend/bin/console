@@ -8,14 +8,13 @@ if (!is_dir(dirname(__DIR__).'/vendor')) {
     throw new LogicException('Dependencies are missing. Try running "composer install".');
 }
 
-if (!is_file(dirname(__DIR__).'/vendor/autoload_runtime.php')) {
-    throw new LogicException('Symfony Runtime is missing. Try running "composer require symfony/runtime".');
+require_once dirname(__DIR__).'/vendor/autoload.php';
+
+// Load .env only if not in Lambda (Lambda has env vars already set)
+if (!isset($_SERVER['LAMBDA_TASK_ROOT']) && file_exists(dirname(__DIR__).'/.env')) {
+    (new Symfony\Component\Dotenv\Dotenv())->bootEnv(dirname(__DIR__).'/.env');
 }
 
-require_once dirname(__DIR__).'/vendor/autoload_runtime.php';
+$kernel = new Kernel($_SERVER['APP_ENV'] ?? 'dev', (bool) ($_SERVER['APP_DEBUG'] ?? false));
 
-return function (array $context) {
-    $kernel = new Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG']);
-
-    return new Application($kernel);
-};
+return new Application($kernel);

@@ -1,0 +1,14 @@
+# Copia este archivo a terraform.tfvars y actualiza los valores
+
+aws_region   = "us-east-1"
+project_name = "crudmvvm-backend"
+environment  = "prod"
+
+# Credenciales de base de datos
+db_username = "postgres"
+db_password = "123456"
+db_name     = "paraleloscrudmvvm"
+
+# Secrets de la aplicación
+app_secret     = "26b33b0981682f42ab8ef2f9e3b73859"                                           # Cambia esto
+jwt_passphrase = "a2b039926737cdcd648d45fb5e7113d3da8eeb32677a3a40997b0d77a341ecda"  # Cambia esto

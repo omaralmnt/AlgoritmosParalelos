@@ -34,6 +34,10 @@ class Cliente
     #[Groups(['cliente:read', 'cliente:write'])]
     private ?string $avatar = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $direccion = null;
+
+
     public function getId(): ?int
     {
         return $this->id;
@@ -95,6 +99,18 @@ class Cliente
     public function setAvatar(?string $avatar): static
     {
         $this->avatar = $avatar;
+
+        return $this;
+    }
+
+    public function getDireccion(): ?string
+    {
+        return $this->direccion;
+    }
+
+    public function setDireccion(string $direccion): static
+    {
+        $this->direccion = $direccion;
 
         return $this;
     }

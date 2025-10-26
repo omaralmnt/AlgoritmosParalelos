@@ -1,0 +1,3 @@
+{"version":"2.0","routeKey":"$default","rawPath":"/dev/api/auth/login","requestContext":{"http":{"method":"POST    
+  ","path":"/dev/api/auth/login"}},"headers":{"content-type":"application/json"},"body":"{\"nombreUsuario\":\"admi    
+  n\",\"clave\":\"password123\"}"}
