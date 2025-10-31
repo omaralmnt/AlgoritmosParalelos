@@ -7,12 +7,10 @@ exports.handler = async (event) => {
   console.log('Request event:', JSON.stringify(event, null, 2));
 
   try {
-    // Parsear el body del request
     const body = event.body ? JSON.parse(event.body) : event;
 
     const { to, subject, message: emailBody, from } = body;
 
-    // Validaciones
     if (!to || !subject || !emailBody) {
       return {
         statusCode: 400,
@@ -25,7 +23,6 @@ exports.handler = async (event) => {
       };
     }
 
-    // Preparar mensaje para SNS
     const emailData = {
       to,
       subject,
@@ -35,7 +32,6 @@ exports.handler = async (event) => {
 
     console.log(`Publicando email a SNS: to=${to}, subject="${subject}"`);
 
-    // Publicar mensaje a SNS
     const command = new PublishCommand({
       TopicArn: topicArn,
       Message: JSON.stringify(emailData),

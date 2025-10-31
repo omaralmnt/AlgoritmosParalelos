@@ -51,6 +51,26 @@ output "api_gateway_authorizer_id" {
   value       = aws_apigatewayv2_authorizer.api_key.id
 }
 
+output "alb_dns_name" {
+  description = "DNS name del Application Load Balancer"
+  value       = aws_lb.main.dns_name
+}
+
+output "alb_arn" {
+  description = "ARN del Application Load Balancer"
+  value       = aws_lb.main.arn
+}
+
+output "alb_zone_id" {
+  description = "Zone ID del ALB para Route53"
+  value       = aws_lb.main.zone_id
+}
+
+output "target_group_arn" {
+  description = "ARN del Target Group"
+  value       = aws_lb_target_group.lambda.arn
+}
+
 output "deployment_summary" {
   description = "Resumen del despliegue"
   value = <<-EOT
@@ -59,16 +79,20 @@ output "deployment_summary" {
   DESPLIEGUE COMPLETADO ✅
   ========================================
 
-  API Endpoint: ${aws_apigatewayv2_api.main.api_endpoint}
+  ALB Endpoint: http://${aws_lb.main.dns_name}
+  API Gateway Endpoint: ${aws_apigatewayv2_api.main.api_endpoint}
 
   IMPORTANTE: Guarda esta API Key (se muestra solo una vez):
   Para obtenerla ejecuta: terraform output -raw api_key
 
-  Uso del API:
-  curl -X POST ${aws_apigatewayv2_api.main.api_endpoint}/api/auth/login \
+  Uso del API via ALB:
+  curl -X POST http://${aws_lb.main.dns_name}/api/auth/login \
     -H "Content-Type: application/json" \
     -H "X-API-Key: [TU_API_KEY]" \
     -d '{"nombreUsuario": "admin", "clave": "password"}'
+
+  Prueba de carga:
+  ab -n 500 -c 20 http://${aws_lb.main.dns_name}/health
 
   Próximos pasos:
   1. Obtener API Key:
@@ -82,8 +106,10 @@ output "deployment_summary" {
   3. Ver logs:
      aws logs tail /aws/lambda/${aws_lambda_function.api.function_name} --follow
 
+  4. Ver métricas del ALB en CloudWatch
+
   ========================================
-  💰 COSTO ESTIMADO: ~$15-20/mes (solo RDS)
+  💰 COSTO ESTIMADO: ~$35-50/mes (RDS + ALB)
   ========================================
   EOT
 }
